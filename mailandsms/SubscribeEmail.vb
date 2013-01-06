@@ -115,13 +115,65 @@ Public Class SubscribeEmail
     End Sub
 
     Function RandomString(ByVal cb As Integer) As String
-        
+        'CREATE RANDOM STRING
+        Randomize()
+        Dim rgch As String
+        ' rgch = "abcdefghijklmnopqrstuvwxyz"
+        ' rgch = rgch & UCase(rgch) & "0123456789"
+        rgch = "0123456789"
+
+        Dim i As Long
+        For i = 1 To cb
+            RandomString = RandomString & Mid$(rgch, Int(Rnd() * Len(rgch) + 1), 1)
+        Next
 
     End Function
 
 
     Private Sub Button1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button1.Click
-       
+        ' BUTTON ADD TO LIST
+        ' MsgBox(Main.ListBoxLists.SelectedValue.ToString)
+        ' MsgBox(ListBox1.SelectedValue.ToString)
+        Dim random_string As String = "http://83.212.99.225/mailsms/index.php?unsubscribe="
+        random_string = random_string & RandomString(10)
+
+
+
+        Try
+            strQuery = "insert into subscribed_to_list(subscriber_id,list_id,random_string) values(" & ListBox1.SelectedValue.ToString & ",'" & Main.ListBoxLists.SelectedValue.ToString & "','" & random_string & "')"
+            mysqlCmd = New MySqlCommand(strQuery, dbCon)
+
+            dbCon.Open()
+            dr = mysqlCmd.ExecuteReader
+
+            While dr.Read
+
+            End While
+
+            dr.Close()
+            dbCon.Close()
+
+        Catch ex As Exception
+            MsgBox("Failure to communicate with server" & vbCrLf & vbCrLf & ex.Message)
+        End Try
+
+        strQuery = "select subscriber.id, subscriber.name, subscriber.email from subscriber, subscribed_to_list " & _
+                            "where subscribed_to_list.subscriber_id=subscriber.id and subscribed_to_list.list_id" & _
+                            "=" & Main.ListBoxLists.SelectedValue.ToString & " order by subscriber.name asc"
+        mysqlCmd = New MySqlCommand(strQuery, dbCon)
+
+        dbCon.Open()
+        dr = mysqlCmd.ExecuteReader
+
+        Dim listElements2 As New ArrayList
+        While dr.Read
+            listElements2.Add(New ListElement(dr.Item("name") & " (" & dr.Item("email") & ")", dr.Item("id")))
+        End While
+        dr.Close()
+        dbCon.Close()
+        ListBox2.DataSource = listElements2
+        ListBox2.DisplayMember = "LongName"
+        ListBox2.ValueMember = "ShortName"
 
     End Sub
 
@@ -269,7 +321,54 @@ Public Class SubscribeEmail
 
 
     Private Sub Button4_Click_1(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button4.Click
-        
+        'BUTTON REMOVE FROM LIST   EMAIL
+
+
+        If ListBox2.SelectedIndex <> -1 Then
+            '   MsgBox(ListBox2.SelectedValue.ToString)
+            ' MsgBox(Main.ListBoxLists.SelectedValue.ToString)
+
+            If ListBox2.SelectedValue.GetType.FullName = "System.String" Then
+                strQuery = "delete from Subscribed_to_list where subscriber_id=" & ListBox2.SelectedValue.ToString & " AND list_id=" & Main.ListBoxLists.SelectedValue.ToString
+
+                mysqlCmd = New MySqlCommand(strQuery, dbCon)
+
+                dbCon.Open()
+                dr = mysqlCmd.ExecuteReader
+
+                Dim listElements As New ArrayList
+                While dr.Read
+                    listElements.Add(New ListElement(dr.Item("name") & " (" & dr.Item("email") & ")", dr.Item("id")))
+                End While
+                dr.Close()
+                dbCon.Close()
+                ListBox2.DataSource = listElements
+                ListBox2.DisplayMember = "LongName"
+                ListBox2.ValueMember = "ShortName"
+                'MsgBox(ListBoxLists.SelectedValue.ToString)
+            End If
+
+
+
+
+        End If
+
+        strQuery = "select subscriber.id, subscriber.name, subscriber.email from subscriber, subscribed_to_list " & _
+                            "where subscribed_to_list.subscriber_id=subscriber.id and subscribed_to_list.list_id" & _
+                            "=" & Main.ListBoxLists.SelectedValue.ToString & " order by subscriber.name asc"
+        mysqlCmd = New MySqlCommand(strQuery, dbCon)
+
+        dbCon.Open()
+        dr = mysqlCmd.ExecuteReader
+
+        Dim listElements2 As New ArrayList
+        While dr.Read
+            listElements2.Add(New ListElement(dr.Item("name") & " (" & dr.Item("email") & ")", dr.Item("id")))
+        End While
+        dr.Close()
+        dbCon.Close()
+        ListBox2.DataSource = listElements2
+        ListBox2.DisplayMember = "LongName"
 
     End Sub
 End Class
