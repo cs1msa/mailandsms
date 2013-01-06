@@ -272,7 +272,98 @@ Public Class Compose
         End If
     End Sub
     Public Function ConvertToHTML(ByVal Box As RichTextBox) As String
-       
+        ' Takes a RichTextBox control and returns a
+        ' simple HTML-formatted version of its contents
+        Dim strHTML As String
+        Dim strColour As String
+        Dim blnBold As Boolean
+        Dim blnItalic As Boolean
+        Dim strFont As String
+        Dim shtSize As Short
+        Dim lngOriginalStart As Long
+        Dim lngOriginalLength As Long
+        Dim intCount As Integer
+        ' If nothing in the box, exit
+        If Box.Text.Length = 0 Then
+            strHTML = ""
+            Return strHTML
+            Exit Function
+        End If
+        ' Store original selections, then select first character
+        lngOriginalStart = 0
+        lngOriginalLength = Box.TextLength
+        Box.Select(0, 1)
+        ' Add HTML header
+        Dim encode As String = "UTF-8"
+        strHTML = "<!DOCTYPE HTML PUBLIC ""-//W3C//DTD HTML 4.01 Transitional//EN"" ""http://www.w3.org/TR/html4/loose.dtd"">"
+        strHTML += "<html><head><title>Newsletter</title></head>"
+        ' Set up initial parameters
+        strHTML += "<body>"
+        strColour = Box.SelectionColor.ToKnownColor.ToString
+        blnBold = Box.SelectionFont.Bold
+        blnItalic = Box.SelectionFont.Italic
+        strFont = Box.SelectionFont.FontFamily.Name
+        shtSize = Box.SelectionFont.Size
+        ' Include first 'style' parameters in the HTML
+        strHTML += "<span style=" & Chr(34) & "font-family: " & strFont & "; font-size: " & shtSize & "pt; color: " & strColour & Chr(34) & ">"
+        ' Include bold tag, if required
+        If blnBold = True Then
+            strHTML += "<b>"
+        End If
+        ' Include italic tag, if required
+        If blnItalic = True Then
+            strHTML += "<i>"
+        End If
+        ' Finally, add our first character
+        strHTML += Box.Text.Substring(0, 1)
+        ' Loop around all remaining characters
+        For intCount = 2 To Box.Text.Length
+            ' Select current character
+            Box.Select(intCount - 1, 1)
+            ' If this is a line break, add HTML tag
+            If Box.Text.Substring(intCount - 1, 1) = Convert.ToChar(10) Then
+                strHTML += "<br>"
+            End If
+            ' Check/implement any changes in style
+            If Box.SelectionColor.ToKnownColor.ToString <> strColour Or Box.SelectionFont.FontFamily.Name <> strFont Or Box.SelectionFont.Size <> shtSize Then
+                strHTML += "</span><span style=" & Chr(34) & "font-family: " & Box.SelectionFont.FontFamily.Name & "; font-size: " & Box.SelectionFont.Size & "pt; color: " & Box.SelectionColor.ToKnownColor.ToString & Chr(34) & ">"
+            End If
+            ' Check for bold changes
+            If Box.SelectionFont.Bold <> blnBold Then
+                If Box.SelectionFont.Bold = False Then
+                    strHTML += "</b>"
+                Else
+                    strHTML += "<b>"
+                End If
+            End If
+            ' Check for italic changes
+            If Box.SelectionFont.Italic <> blnItalic Then
+                If Box.SelectionFont.Italic = False Then
+                    strHTML += "</i>"
+                Else
+                    strHTML += "<i>"
+                End If
+            End If
+            ' Add the actual character
+            strHTML += Mid(Box.Text, intCount, 1)
+            ' Update variables with current style
+            strColour = Box.SelectionColor.ToKnownColor.ToString
+            blnBold = Box.SelectionFont.Bold
+            blnItalic = Box.SelectionFont.Italic
+            strFont = Box.SelectionFont.FontFamily.Name
+            shtSize = Box.SelectionFont.Size
+        Next
+        ' Close off any open bold/italic tags
+        If blnBold = True Then strHTML += ""
+        If blnItalic = True Then strHTML += ""
+        ' Terminate outstanding HTML tags
+        strHTML += "</span><p><p>"
+
+        'This should be added after we add the unsubscribe link strHTML += "</body></html>"
+        ' Restore original RichTextBox selection
+        Box.Select(lngOriginalStart, lngOriginalLength)
+        ' Return HTML
+        Return strHTML
     End Function
 
 
