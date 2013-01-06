@@ -59,11 +59,137 @@ Public Class Main
     End Sub
 
     Private Sub Main_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
-        
+        Control.CheckForIllegalCrossThreadCalls = False
+        Try
+            strQuery = "select id, name from list where type='email' order by name asc"
+            mysqlCmd = New MySqlCommand(strQuery, dbCon)
+
+            dbCon.Open()
+            dr = mysqlCmd.ExecuteReader
+
+            Dim listElements As New ArrayList
+            While dr.Read
+                listElements.Add(New ListElement(dr.Item("name"), dr.Item("id")))
+            End While
+            dr.Close()
+            dbCon.Close()
+            ListBoxLists.DataSource = listElements
+            ListBoxLists.DisplayMember = "LongName"
+            ListBoxLists.ValueMember = "ShortName"
+
+            '  ListBoxLists.ClearSelected()
+        Catch ex As Exception
+            MsgBox("Failure to communicate with server" & vbCrLf & vbCrLf & ex.Message)
+        End Try
+
+        Dim rows As Integer
+        Try
+            strQuery = "SELECT COUNT(*) FROM List where type='email'"
+            mysqlCmd = New MySqlCommand(strQuery, dbCon)
+
+            dbCon.Open()
+
+            'Metrao tis seires tou pinaka List me type email
+            mysqlCmd.CommandText = strQuery
+            rows = mysqlCmd.ExecuteScalar()
+            'Emfanizo tis seires tou pinaka List me type email
+            Label7.Text = rows
+
+            dbCon.Close()
+
+        Catch ex As Exception
+            MsgBox("Failure to communicate with server" & vbCrLf & vbCrLf & ex.Message)
+        End Try
+
     End Sub
 
     Private Sub TabControl1_SelectedIndexChanged(sender As System.Object, e As System.EventArgs) Handles TabControl1.SelectedIndexChanged
-       
+        If TabControl1.SelectedIndex = 0 Then
+            'ListBoxLists.Items.Clear()
+            Try
+                strQuery = "select id, name from list where type='email' order by name asc"
+                mysqlCmd = New MySqlCommand(strQuery, dbCon)
+
+                dbCon.Open()
+                dr = mysqlCmd.ExecuteReader
+
+                Dim listElements As New ArrayList
+                While dr.Read
+                    listElements.Add(New ListElement(dr.Item("name"), dr.Item("id")))
+                End While
+                dr.Close()
+                dbCon.Close()
+                ListBoxLists.DataSource = listElements
+                ListBoxLists.DisplayMember = "LongName"
+                ListBoxLists.ValueMember = "ShortName"
+            Catch ex As Exception
+                MsgBox("Failure to communicate with server" & vbCrLf & vbCrLf & ex.Message)
+            End Try
+
+            Dim rows As Integer
+            Try
+                strQuery = "SELECT COUNT(*) FROM List where type='email'"
+                mysqlCmd = New MySqlCommand(strQuery, dbCon)
+
+                dbCon.Open()
+
+                'Metrao tis seires tou pinaka List me type email
+                mysqlCmd.CommandText = strQuery
+                rows = mysqlCmd.ExecuteScalar()
+                'Emfanizo tis seires tou pinaka List me type email
+                Label7.Text = rows
+
+                dbCon.Close()
+
+            Catch ex As Exception
+                MsgBox("Failure to communicate with server" & vbCrLf & vbCrLf & ex.Message)
+            End Try
+
+
+
+        ElseIf TabControl1.SelectedIndex = 1 Then
+            '  ListBoxSubscribers.Items.Clear()
+            Try
+                strQuery = "select id, name from list where type='sms' order by name asc"
+                mysqlCmd = New MySqlCommand(strQuery, dbCon)
+
+                dbCon.Open()
+                dr = mysqlCmd.ExecuteReader
+
+                Dim listElements As New ArrayList
+                While dr.Read
+                    listElements.Add(New ListElement(dr.Item("name"), dr.Item("id")))
+                End While
+                dr.Close()
+                dbCon.Close()
+                ListBox2.DataSource = listElements
+                ListBox2.DisplayMember = "LongName"
+                ListBox2.ValueMember = "ShortName"
+
+                '   ListBoxLists.ClearSelected()
+            Catch ex As Exception
+                MsgBox("Failure to communicate with server" & vbCrLf & vbCrLf & ex.Message)
+            End Try
+
+            Dim rows As Integer
+            Try
+                strQuery = "SELECT COUNT(*) FROM List where type='sms'"
+                mysqlCmd = New MySqlCommand(strQuery, dbCon)
+
+                dbCon.Open()
+
+                'Metrao tis seires tou pinaka List me type sms
+                mysqlCmd.CommandText = strQuery
+                rows = mysqlCmd.ExecuteScalar()
+                'Emfanizo tis seires tou pinaka List me type sms
+                Label8.Text = rows
+
+                dbCon.Close()
+
+            Catch ex As Exception
+                MsgBox("Failure to communicate with server" & vbCrLf & vbCrLf & ex.Message)
+            End Try
+        End If
     End Sub
 
 
@@ -141,7 +267,78 @@ Public Class Main
     End Sub
 
     Private Sub processQueue()
-        
+        Dim dbCon As New MySqlConnection("Server=" & My.Settings.mysqlServer & ";Database=" & _
+                                         My.Settings.mysqlDatabase & ";Uid=" & My.Settings.mysqlUsername & _
+                                         ";Pwd=" & My.Settings.mysqlPassword & ";encrypt=" & My.Settings.mysqlSSL)
+        Try
+            Dim strQuery As String = "select subscriber.email, message.subject, message.message, subscribed_to_list.random_string from message, subscriber, subscribed_to_list, " & _
+                "listmessage, list where list.type='email' and list.id = subscribed_to_list.list_id and message.id = listmessage.message_id " & _
+                "and listmessage.list_id = subscribed_to_list.list_id and subscribed_to_list.subscriber_id = subscriber.id " & _
+                "and listmessage.date < CURRENT_TIMESTAMP"
+
+            Dim mysqlCmd As MySqlCommand = New MySqlCommand(strQuery, dbCon)
+
+            dbCon.Open()
+            Dim dr As MySqlDataReader = mysqlCmd.ExecuteReader
+
+            Dim recipients As ArrayList = New ArrayList
+            While dr.Read
+                recipients.Add(dr.Item("email") & " " & dr.Item("random_string"))
+            End While
+            Try
+                If recipients.Count > 0 Then
+
+                    sendEmail(recipients, dr.Item("subject"), dr.Item("message"))
+                    dr.Close()
+
+                End If
+
+            Catch ex As Exception
+                MessageBox.Show(ex.Message)
+            End Try
+
+
+            dr.Close()
+            dbCon.Close()
+        Catch ex As Exception
+            MsgBox("Failure to communicate with server" & vbCrLf & vbCrLf & ex.Message)
+        End Try
+
+
+        '
+        ' Send sms
+        '
+
+        Try
+            
+            Dim strQuery As String = "select subscriber.sms as sms, message.message as msg from message, subscriber, subscribed_to_list, listmessage, " & _
+                "list where list.type='sms' and list.id = subscribed_to_list.list_id and message.id = listmessage.message_id  " & _
+                "and subscribed_to_list.subscriber_id = subscriber.id and listmessage.date < CURRENT_TIMESTAMP"
+
+            Dim mysqlCmd As MySqlCommand = New MySqlCommand(strQuery, dbCon)
+
+            dbCon.Open()
+            Dim dr As MySqlDataReader = mysqlCmd.ExecuteReader
+
+            While dr.Read
+                Dim sms As String = dr.Item("sms")
+                Dim msg As String = dr.Item("msg")
+
+                Dim url As String = "https://www.smsn.gr/api/http/send.php?username=" + My.Settings.smsUsername + "&password=" + My.Settings.smsPassword + "&from=mailsms&message=" + msg + "&to=" + sms
+                MessageBox.Show(url)
+                WebBrowser1.Navigate(url)
+            End While
+            dr.Close()
+            
+            strQuery = "delete from listmessage where date < CURRENT_TIMESTAMP"
+            mysqlCmd = New MySqlCommand(strQuery, dbCon)
+            mysqlCmd.ExecuteNonQuery()
+
+            dbCon.Close()
+
+        Catch ex As Exception
+            MsgBox("Failure to communicate with server" & vbCrLf & vbCrLf & ex.Message)
+        End Try
 
     End Sub
 
@@ -163,7 +360,38 @@ Public Class Main
 
     Private Sub ListBox2_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ListBox2.SelectedIndexChanged
         'TOY TAB SMS
-        
+        If ListBox2.SelectedIndex <> -1 Then
+            If ListBox2.SelectedValue.GetType.FullName = "System.String" Then
+                strQuery = "select subscriber.id, subscriber.name, subscriber.sms from subscriber, subscribed_to_list " & _
+                           "where subscribed_to_list.subscriber_id=subscriber.id and subscribed_to_list.list_id" & _
+                          "=" & ListBox2.SelectedValue.ToString & " order by subscriber.name asc"
+                mysqlCmd = New MySqlCommand(strQuery, dbCon)
+
+                dbCon.Open()
+                dr = mysqlCmd.ExecuteReader
+
+                Dim listElements As New ArrayList
+                While dr.Read
+                    listElements.Add(New ListElement(dr.Item("name") & " (" & dr.Item("sms") & ")", dr.Item("id")))
+                End While
+                dr.Close()
+                ListBox1.DataSource = listElements
+                ListBox1.DisplayMember = "LongName"
+                If ListBox1.ValueMember <> "" Then
+                    ListBox1.ValueMember = "ShortName"
+                End If
+
+                strQuery = "SELECT COUNT(*) FROM subscribed_to_list where list_id=" & ListBox2.SelectedValue
+                mysqlCmd = New MySqlCommand(strQuery, dbCon)
+
+                mysqlCmd.CommandText = strQuery
+                Label4.Text = "Subscribers #: " & mysqlCmd.ExecuteScalar()
+
+                dbCon.Close()
+            End If
+
+
+        End If
     End Sub
     Private Sub Button1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button1.Click
         'BUTTON CREATE from EMAIL TAB
