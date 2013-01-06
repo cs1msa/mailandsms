@@ -1,0 +1,48 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="My" GeneratedClassName="MySettings" UseMySettingsClassName="true">
+  <Profiles />
+  <Settings>
+    <Setting Name="smtpServer" Type="System.String" Scope="User">
+      <Value Profile="(Default)">smtp.googlemail.com</Value>
+    </Setting>
+    <Setting Name="fromAddress" Type="System.String" Scope="User">
+      <Value Profile="(Default)">konte.yiannis@googlemail.com</Value>
+    </Setting>
+    <Setting Name="SMTLSSL" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="SMTPPort" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">587</Value>
+    </Setting>
+    <Setting Name="SMTPUsername" Type="System.String" Scope="User">
+      <Value Profile="(Default)">konte.yiannis@googlemail.com</Value>
+    </Setting>
+    <Setting Name="SMTPPassword" Type="System.String" Scope="User">
+      <Value Profile="(Default)">alla3e to</Value>
+    </Setting>
+    <Setting Name="mysqlServer" Type="System.String" Scope="User">
+      <Value Profile="(Default)">83.212.99.225</Value>
+    </Setting>
+    <Setting Name="mysqlSSL" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="mysqlPort" Type="System.String" Scope="User">
+      <Value Profile="(Default)">3306</Value>
+    </Setting>
+    <Setting Name="mysqlUsername" Type="System.String" Scope="User">
+      <Value Profile="(Default)">mailandsms</Value>
+    </Setting>
+    <Setting Name="mysqlPassword" Type="System.String" Scope="User">
+      <Value Profile="(Default)">mailpassword$$</Value>
+    </Setting>
+    <Setting Name="mysqlDatabase" Type="System.String" Scope="User">
+      <Value Profile="(Default)">mailsmsdb</Value>
+    </Setting>
+    <Setting Name="smsUsername" Type="System.String" Scope="User">
+      <Value Profile="(Default)">gpapanto</Value>
+    </Setting>
+    <Setting Name="smsPassword" Type="System.String" Scope="User">
+      <Value Profile="(Default)">4587dfg45</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
