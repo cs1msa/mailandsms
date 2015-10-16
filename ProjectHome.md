@@ -1,0 +1,1 @@
+A desktop application managing mail and sms subscription and posts
